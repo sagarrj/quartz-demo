@@ -1,4 +1,4 @@
-package com.helixz.quartz.demo;
+package com.trampoline.batch.quartz.demo;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

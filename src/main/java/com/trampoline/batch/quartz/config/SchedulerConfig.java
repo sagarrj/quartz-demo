@@ -1,6 +1,6 @@
-package com.helixz.quartz.demo.config;
+package com.trampoline.batch.quartz.config;
 
-import com.helixz.quartz.demo.component.SchedulerJobFactory;
+import com.trampoline.batch.quartz.component.SchedulerJobFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.quartz.QuartzProperties;
 import org.springframework.context.ApplicationContext;

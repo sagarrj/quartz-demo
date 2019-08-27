@@ -1,6 +1,6 @@
-package com.helixz.quartz.demo.component;
+package com.trampoline.batch.quartz.component;
 
-import com.helixz.quartz.demo.service.SchedulerService;
+import com.trampoline.batch.quartz.service.SchedulerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;

@@ -1,10 +1,13 @@
-package com.helixz.quartz.demo.service.impl;
+package com.trampoline.batch.quartz.service.impl;
 
-import com.helixz.quartz.demo.component.JobScheduleCreator;
-import com.helixz.quartz.demo.enitiy.SchedulerJobInfo;
-import com.helixz.quartz.demo.repository.SchedulerRepository;
-import com.helixz.quartz.demo.service.SchedulerService;
+import com.trampoline.batch.domain.ScheduledTask;
+import com.trampoline.batch.quartz.component.JobScheduleCreator;
+import com.trampoline.batch.quartz.service.SchedulerService;
+import com.trampoline.batch.repository.ScheduledTaskRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -28,7 +31,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     private SchedulerFactoryBean schedulerFactoryBean;
 
     @Autowired
-    private SchedulerRepository schedulerRepository;
+    private ScheduledTaskRepository scheduledTaskRepository;
 
     @Autowired
     private ApplicationContext context;
@@ -38,7 +41,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
     @Override
     public void startAllSchedulers() {
-        List<SchedulerJobInfo> jobInfoList = schedulerRepository.findAll();
+        List<ScheduledTask> jobInfoList = scheduledTaskRepository.findAll();
         if (jobInfoList != null) {
             Scheduler scheduler = schedulerFactoryBean.getScheduler();
             jobInfoList.forEach(jobInfo -> {
@@ -58,12 +61,19 @@ public class SchedulerServiceImpl implements SchedulerService {
                                     jobInfo.getRepeatTime(), SimpleTrigger.MISFIRE_INSTRUCTION_FIRE_NOW);
                         }
 
+                        JSONParser jp= new JSONParser();
+                        JSONObject jobdatajson=(JSONObject)jp.parse(jobInfo.getJobdata());
+                        JobDataMap jdmap= jobDetail.getJobDataMap();
+                        jdmap.put("CompanyId",jobInfo.getCompanyid());
+                        jdmap.put("jobdata", jobdatajson);
+                        jdmap.put("taskid", jobInfo.getTaskid());
+
                         scheduler.scheduleJob(jobDetail, trigger);
 
                     }
                 } catch (ClassNotFoundException e) {
                     log.error("Class Not Found - {}", jobInfo.getJobClass(), e);
-                } catch (SchedulerException e) {
+                } catch (ParseException | SchedulerException e) {
                     log.error(e.getMessage(), e);
                 }
             });
@@ -71,7 +81,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public void scheduleNewJob(SchedulerJobInfo jobInfo) {
+    public void scheduleNewJob(ScheduledTask jobInfo) {
         try {
             Scheduler scheduler = schedulerFactoryBean.getScheduler();
 
@@ -92,7 +102,7 @@ public class SchedulerServiceImpl implements SchedulerService {
                 }
 
                 scheduler.scheduleJob(jobDetail, trigger);
-                schedulerRepository.save(jobInfo);
+                scheduledTaskRepository.save(jobInfo);
             } else {
                 log.error("scheduleNewJobRequest.jobAlreadyExist");
             }
@@ -104,7 +114,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public void updateScheduleJob(SchedulerJobInfo jobInfo) {
+    public void updateScheduleJob(ScheduledTask jobInfo) {
         Trigger newTrigger;
         if (jobInfo.getCronJob()) {
             newTrigger = scheduleCreator.createCronTrigger(jobInfo.getJobName(), new Date(), jobInfo.getCronExpression(),
@@ -115,7 +125,7 @@ public class SchedulerServiceImpl implements SchedulerService {
         }
         try {
             schedulerFactoryBean.getScheduler().rescheduleJob(TriggerKey.triggerKey(jobInfo.getJobName()), newTrigger);
-            schedulerRepository.save(jobInfo);
+            scheduledTaskRepository.save(jobInfo);
         } catch (SchedulerException e) {
             log.error(e.getMessage(), e);
         }
@@ -133,7 +143,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public boolean deleteJob(SchedulerJobInfo jobInfo) {
+    public boolean deleteJob(ScheduledTask jobInfo) {
         try {
             return schedulerFactoryBean.getScheduler().deleteJob(new JobKey(jobInfo.getJobName(), jobInfo.getJobGroup()));
         } catch (SchedulerException e) {
@@ -143,7 +153,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public boolean pauseJob(SchedulerJobInfo jobInfo) {
+    public boolean pauseJob(ScheduledTask jobInfo) {
         try {
             schedulerFactoryBean.getScheduler().pauseJob(new JobKey(jobInfo.getJobName(), jobInfo.getJobGroup()));
             return true;
@@ -154,7 +164,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public boolean resumeJob(SchedulerJobInfo jobInfo) {
+    public boolean resumeJob(ScheduledTask jobInfo) {
         try {
             schedulerFactoryBean.getScheduler().resumeJob(new JobKey(jobInfo.getJobName(), jobInfo.getJobGroup()));
             return true;
@@ -165,7 +175,7 @@ public class SchedulerServiceImpl implements SchedulerService {
     }
 
     @Override
-    public boolean startJobNow(SchedulerJobInfo jobInfo) {
+    public boolean startJobNow(ScheduledTask jobInfo) {
         try {
             schedulerFactoryBean.getScheduler().triggerJob(new JobKey(jobInfo.getJobName(), jobInfo.getJobGroup()));
             return true;

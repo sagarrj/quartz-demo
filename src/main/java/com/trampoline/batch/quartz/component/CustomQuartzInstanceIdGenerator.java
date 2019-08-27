@@ -1,4 +1,4 @@
-package com.helixz.quartz.demo.component;
+package com.trampoline.batch.quartz.component;
 
 import org.quartz.SchedulerException;
 import org.quartz.spi.InstanceIdGenerator;
