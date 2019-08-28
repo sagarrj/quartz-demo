@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.quartz.*;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -64,16 +65,18 @@ public class SchedulerServiceImpl implements SchedulerService {
                         JSONParser jp= new JSONParser();
                         JSONObject jobdatajson=(JSONObject)jp.parse(jobInfo.getJobdata());
                         JobDataMap jdmap= jobDetail.getJobDataMap();
-                        jdmap.put("CompanyId",jobInfo.getCompanyid());
-                        jdmap.put("jobdata", jobdatajson);
-                        jdmap.put("taskid", jobInfo.getTaskid());
+                        jdmap.put("CompanyId",jobInfo.getCompanyid()+"");
+                        jdmap.put("jobdata", jobdatajson.toString());
+                        jdmap.put("taskid", jobInfo.getTaskid()+ "");
 
                         scheduler.scheduleJob(jobDetail, trigger);
 
                     }
-                } catch (ClassNotFoundException e) {
+                } catch (ClassNotFoundException | NoSuchBeanDefinitionException e) {
                     log.error("Class Not Found - {}", jobInfo.getJobClass(), e);
                 } catch (ParseException | SchedulerException e) {
+                    log.error(e.getMessage(), e);
+                }catch (Exception e){
                     log.error(e.getMessage(), e);
                 }
             });

@@ -23,8 +23,6 @@ public class ScheduledTask implements Serializable {
 
 	private String cronExpression;
 
-	private int isscheduled;
-
 	@Lob
 	private String jobdata;
 

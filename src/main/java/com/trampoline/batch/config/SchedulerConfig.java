@@ -1,4 +1,4 @@
-package com.trampoline.batch.quartz.config;
+package com.trampoline.batch.config;
 
 import com.trampoline.batch.quartz.component.SchedulerJobFactory;
 import org.springframework.beans.factory.annotation.Autowired;
